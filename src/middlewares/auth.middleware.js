@@ -1,5 +1,16 @@
 const jwt = require('jsonwebtoken');
 const { secret } = require('../config/jwt');
+const store = require('../data/store');
+
+function normalizeIdentity(value = '') {
+  return String(value)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/[._-]+/g, ' ')
+    .replace(/\s+/g, ' ');
+}
 
 function authenticate(req, res, next) {
   const header = req.headers.authorization || '';
@@ -11,6 +22,10 @@ function authenticate(req, res, next) {
 
   try {
     const payload = jwt.verify(token, secret);
+    if (!payload || !payload.sub) {
+      return res.status(401).json({ message: 'Invalid token payload' });
+    }
+
     req.user = payload;
     return next();
   } catch (_err) {
@@ -19,7 +34,21 @@ function authenticate(req, res, next) {
 }
 
 function authorizeOrganizer(req, res, next) {
-  // Placeholder: compare req.user identity with project organizer
+  const projectId = Number(req.params.id);
+  const project = store.projects.find((item) => item.id === projectId);
+
+  if (!project) {
+    return res.status(404).json({ message: 'Project not found' });
+  }
+
+  const userIdentity = normalizeIdentity(req.user?.sub);
+  const organizerIdentity = normalizeIdentity(project.organizer);
+
+  if (!userIdentity || userIdentity !== organizerIdentity) {
+    return res.status(403).json({ message: 'Only organizer can perform this action' });
+  }
+
+  req.project = project;
   return next();
 }
 
