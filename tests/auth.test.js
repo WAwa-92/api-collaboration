@@ -16,4 +16,11 @@ describe('Auth API', () => {
     expect(typeof response.body.token).toBe('string');
     expect(response.body.token.length).toBeGreaterThan(20);
   });
+
+  it('returns token from /auth/token endpoint', async () => {
+    const response = await request(app).post('/auth/token').send({ username: 'alice.smith' });
+
+    expect(response.status).toBe(200);
+    expect(typeof response.body.token).toBe('string');
+  });
 });

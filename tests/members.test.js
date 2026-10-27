@@ -16,6 +16,12 @@ describe('Members API - authorization', () => {
       .send({ name: 'Test User', role: 'QA' });
 
     expect(response.status).toBe(403);
-    expect(response.body).toEqual({ message: 'Only organizer can perform this action' });
+    expect(response.body).toEqual({
+      error: {
+        category: 'security',
+        code: 'AUTH_INSUFFICIENT_RIGHTS',
+        message: 'Only organizer can perform this action'
+      }
+    });
   });
 });

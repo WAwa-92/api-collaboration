@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { secret } = require('../config/jwt');
 const store = require('../data/store');
+const { sendSecurityError } = require('../utils/securityResponse');
 
 function normalizeIdentity(value = '') {
   return String(value)
@@ -17,19 +18,24 @@ function authenticate(req, res, next) {
   const [scheme, token] = header.split(' ');
 
   if (scheme !== 'Bearer' || !token) {
-    return res.status(401).json({ message: 'Missing or invalid Authorization header' });
+    return sendSecurityError(
+      res,
+      401,
+      'AUTH_MISSING_OR_INVALID_HEADER',
+      'Missing or invalid Authorization header'
+    );
   }
 
   try {
     const payload = jwt.verify(token, secret);
     if (!payload || !payload.sub) {
-      return res.status(401).json({ message: 'Invalid token payload' });
+      return sendSecurityError(res, 401, 'AUTH_INVALID_PAYLOAD', 'Invalid token payload');
     }
 
     req.user = payload;
     return next();
   } catch (_err) {
-    return res.status(401).json({ message: 'Invalid or expired token' });
+    return sendSecurityError(res, 401, 'AUTH_INVALID_OR_EXPIRED_TOKEN', 'Invalid or expired token');
   }
 }
 
@@ -45,7 +51,12 @@ function authorizeOrganizer(req, res, next) {
   const organizerIdentity = normalizeIdentity(project.organizer);
 
   if (!userIdentity || userIdentity !== organizerIdentity) {
-    return res.status(403).json({ message: 'Only organizer can perform this action' });
+    return sendSecurityError(
+      res,
+      403,
+      'AUTH_INSUFFICIENT_RIGHTS',
+      'Only organizer can perform this action'
+    );
   }
 
   req.project = project;

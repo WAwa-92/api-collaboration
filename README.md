@@ -13,3 +13,7 @@ Structure initiale du projet (Express + JWT + upload PDF + stockage mémoire).
 - `src/` : code source
 - `uploads/` : stockage des PDF
 - `tests/` : tests API
+
+## Sécurité (Lot 1)
+
+- Matrice des droits : [docs/authorization-matrix.md](docs/authorization-matrix.md)
