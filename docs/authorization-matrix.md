@@ -18,6 +18,7 @@
 | `GET /projects/:id/members` | Oui | Non | Autorisé |
 | `POST /projects/:id/members` | Oui | Oui | Refusé (403) |
 | `PUT /projects/:id/members/:memberId` | Oui | Oui | Refusé (403) |
+| `PATCH /projects/:id/members/:memberId` | Oui | Oui | Refusé (403) |
 | `DELETE /projects/:id/members/:memberId` | Oui | Oui | Refusé (403) |
 
 ## Format standard des erreurs de sécurité

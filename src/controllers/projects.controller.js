@@ -1,11 +1,20 @@
 const store = require('../data/store');
 
-function listProjects(_req, res) {
-  return res.status(200).json({ items: store.projects });
+const projectService = require('../services/project.service');
+const { ok } = require('../utils/response');
+
+function listProjects(req, res) {
+  const { q, role, page, size } = req.query;
+  const result = projectService.list({
+    q,
+    role,
+    page: page ? Number(page) : 1,
+    size: size ? Number(size) : 10
+  });
+  return ok(res, result);
 }
 
 function createProject(_req, res) {
-  // Placeholder: implemented in lot "Projects + upload"
   return res.status(501).json({ message: 'Not implemented yet' });
 }
 

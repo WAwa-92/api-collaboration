@@ -1,0 +1,100 @@
+@base = http://localhost:3000
+@token = {{login_alice.response.body.$.token}}
+@token_john = {{login_john.response.body.$.token}}
+
+### 1. Token organizer du projet 1
+# @name login_alice
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{ "username": "alice.smith" }
+
+### 2. Token non-organizer (pour tester les 403)
+# @name login_john
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{ "username": "john.doe" }
+
+### 3. Liste projets (défaut) -> 200
+GET {{base}}/projects
+Authorization: Bearer {{token}}
+
+### 4. Recherche + filtre + pagination -> 200, total 1
+GET {{base}}/projects?q=crm&role=Developer&page=1&size=10
+Authorization: Bearer {{token}}
+
+### 5. Pagination page 2, size 1 -> 200
+GET {{base}}/projects?page=2&size=1
+Authorization: Bearer {{token}}
+### 6. page invalide -> 400
+GET {{base}}/projects?page=0
+Authorization: Bearer {{token}}
+
+### 7. Liste membres projet 1 -> 200
+GET {{base}}/projects/1/members
+Authorization: Bearer {{token}}
+
+### 8. Liste membres projet inexistant -> 404
+GET {{base}}/projects/999/members
+Authorization: Bearer {{token}}
+
+### 9. Ajout membre (token alice) -> 201
+POST {{base}}/projects/1/members
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "name": "Emma Roy", "role": "Designer" }
+
+### 10. Ajout sans name -> 400
+POST {{base}}/projects/1/members
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "role": "QA" }
+
+### 11. Ajout sur projet inexistant -> 404
+POST {{base}}/projects/999/members
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "name": "Ghost", "role": "QA" }
+
+### 12. Ajout avec token john (non-organizer) -> 403
+POST {{base}}/projects/1/members
+Authorization: Bearer {{token_john}}
+Content-Type: application/json
+
+{ "name": "Test", "role": "QA" }
+
+### 13. PUT membre -> 200
+PUT {{base}}/projects/1/members/101
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "name": "John Doe", "role": "TechLead" }
+
+### 14. PATCH membre -> 200
+PATCH {{base}}/projects/1/members/102
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "role": "Developer" }
+
+### 15. PATCH vide -> 400
+PATCH {{base}}/projects/1/members/102
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{}
+
+### 16. Membre inexistant -> 404
+PUT {{base}}/projects/1/members/9999
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "name": "X", "role": "Y" }
+
+### 17. Suppression -> 204 (la refaire -> 404)
+DELETE {{base}}/projects/1/members/103
+Authorization: Bearer {{token}}
